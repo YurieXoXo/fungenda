@@ -461,6 +461,44 @@
       flex-basis: 100%;
     }
 
+    .sync-login-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      flex-basis: 100%;
+    }
+
+    .sync-btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      width: 100%;
+      flex-basis: 100%;
+      align-items: center;
+    }
+
+    .sync-set-pwd {
+      width: 100%;
+      flex-basis: 100%;
+      margin-top: 6px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: grid;
+      gap: 10px;
+    }
+
+    .sync-hint {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    @media (max-width: 820px) {
+      .sync-login-row { grid-template-columns: 1fr; }
+    }
+
     .sync-block.signed-in .sync-status {
       width: auto;
       flex-basis: auto;
@@ -629,9 +667,21 @@
       <input type="file" id="importFile" accept=".json,application/json" hidden />
       <div class="sync-block" id="syncBlock" hidden>
         <span class="sync-status" id="syncStatus"></span>
-        <input type="email" id="syncEmail" class="sync-email" placeholder="your@email.com (sync)" autocomplete="email" />
-        <button type="button" class="ghost-btn" id="syncMagicBtn">Email magic link</button>
-        <button type="button" class="ghost-btn" id="syncSignOutBtn" hidden>Sign out</button>
+        <div class="sync-login-row" id="syncLoginRow">
+          <input type="email" id="syncEmail" class="sync-email" placeholder="your@email.com (sync)" autocomplete="email" />
+          <input type="password" id="syncPassword" class="sync-email" placeholder="Password (if set on phone)" autocomplete="current-password" />
+        </div>
+        <div class="sync-btn-row" id="syncBtnRow">
+          <button type="button" class="ghost-btn" id="syncMagicBtn">Email magic link</button>
+          <button type="button" class="ghost-btn" id="syncPwdSignInBtn">Sign in with password</button>
+          <button type="button" class="ghost-btn" id="syncSignOutBtn" hidden>Sign out</button>
+        </div>
+        <div class="sync-set-pwd" id="syncSetPwdWrap" hidden>
+          <p class="sync-hint">Avoid magic-link limits: set a password once here, then on PC use the same email + password (no new email).</p>
+          <input type="password" id="syncNewPwd1" class="sync-email" placeholder="New password (min 6 chars)" autocomplete="new-password" />
+          <input type="password" id="syncNewPwd2" class="sync-email" placeholder="Repeat password" autocomplete="new-password" />
+          <button type="button" class="ghost-btn" id="syncSavePwdBtn">Save password</button>
+        </div>
       </div>
     </div>
 
@@ -1218,10 +1268,14 @@
     async function refreshSyncUI() {
       const block = document.getElementById("syncBlock");
       const status = document.getElementById("syncStatus");
+      const loginRow = document.getElementById("syncLoginRow");
       const email = document.getElementById("syncEmail");
+      const pwd = document.getElementById("syncPassword");
       const magicBtn = document.getElementById("syncMagicBtn");
+      const pwdInBtn = document.getElementById("syncPwdSignInBtn");
       const outBtn = document.getElementById("syncSignOutBtn");
-      if (!block || !status || !email || !magicBtn || !outBtn) return;
+      const setPwdWrap = document.getElementById("syncSetPwdWrap");
+      if (!block || !status || !email || !magicBtn || !outBtn || !loginRow || !pwd || !pwdInBtn || !setPwdWrap) return;
 
       if (!supabaseConfigured()) {
         block.hidden = true;
@@ -1232,25 +1286,35 @@
 
       if (!supabaseClient) {
         status.textContent = cloudLoadError || "Loading cloud…";
+        loginRow.hidden = false;
         email.hidden = false;
+        pwd.hidden = false;
         magicBtn.hidden = false;
+        pwdInBtn.hidden = false;
         outBtn.hidden = true;
+        setPwdWrap.hidden = true;
         block.classList.remove("signed-in");
         return;
       }
 
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session?.user) {
-        status.textContent = "Cloud sync on (same email on both devices)";
-        email.hidden = true;
+        status.textContent = "Cloud sync on — set a password below for PC login without email";
+        loginRow.hidden = true;
         magicBtn.hidden = true;
+        pwdInBtn.hidden = true;
         outBtn.hidden = false;
+        setPwdWrap.hidden = false;
         block.classList.add("signed-in");
       } else {
-        status.textContent = "Use the same email on phone and PC to share data";
+        status.textContent = "Magic link or password (if set). Hit email limits? Use password.";
+        loginRow.hidden = false;
         email.hidden = false;
+        pwd.hidden = false;
         magicBtn.hidden = false;
+        pwdInBtn.hidden = false;
         outBtn.hidden = true;
+        setPwdWrap.hidden = true;
         block.classList.remove("signed-in");
       }
     }
@@ -1465,11 +1529,58 @@
       });
       if (error) {
         qDbg("signInWithOtp: error", { message: error.message, status: error.status, name: error.name });
-        showToast(error.message || "Could not send login email");
+        const msg = error.message || "";
+        if (/rate|429|too many|seconds/i.test(msg)) {
+          showToast("Email rate limit — use ‘Sign in with password’ if you set one on your phone, or wait a bit.");
+        } else {
+          showToast(msg || "Could not send login email");
+        }
         return;
       }
       qDbg("signInWithOtp: email sent OK", data || {});
       showToast("Check your email for the magic link");
+    });
+
+    document.getElementById("syncPwdSignInBtn").addEventListener("click", async () => {
+      if (!supabaseClient) {
+        showToast("Cloud still starting…");
+        return;
+      }
+      const email = document.getElementById("syncEmail").value.trim();
+      const password = document.getElementById("syncPassword").value;
+      if (!email || !password) {
+        showToast("Enter email and the password you saved on your phone");
+        return;
+      }
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        qDbg("signInWithPassword", error.message);
+        showToast(error.message || "Sign-in failed — set password on phone while logged in");
+        return;
+      }
+      showToast("Signed in");
+    });
+
+    document.getElementById("syncSavePwdBtn").addEventListener("click", async () => {
+      if (!supabaseClient) return;
+      const p1 = document.getElementById("syncNewPwd1").value;
+      const p2 = document.getElementById("syncNewPwd2").value;
+      if (p1.length < 6) {
+        showToast("Use at least 6 characters");
+        return;
+      }
+      if (p1 !== p2) {
+        showToast("Passwords do not match");
+        return;
+      }
+      const { error } = await supabaseClient.auth.updateUser({ password: p1 });
+      if (error) {
+        showToast(error.message || "Could not save password");
+        return;
+      }
+      document.getElementById("syncNewPwd1").value = "";
+      document.getElementById("syncNewPwd2").value = "";
+      showToast("Password saved — use it on your PC (no email)");
     });
 
     document.getElementById("syncSignOutBtn").addEventListener("click", async () => {
