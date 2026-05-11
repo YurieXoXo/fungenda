@@ -61,68 +61,243 @@
     }
 
     .app {
-      width: min(1420px, calc(100% - 30px));
+      width: 100%;
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 22px 0 50px;
+      padding: 10px 12px 0;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
       position: relative;
     }
 
-    .topbar {
+    .app-top {
       display: flex;
-      justify-content: space-between;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 18px;
-      margin-bottom: 18px;
+      justify-content: space-between;
+      gap: 10px 14px;
+      margin-bottom: 12px;
     }
 
-    .brand {
+    .app-brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
     }
 
     .logo {
-      width: 54px;
-      height: 54px;
-      border-radius: 19px;
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
       display: grid;
       place-items: center;
       background: linear-gradient(135deg, var(--purple), var(--pink));
-      box-shadow: 0 18px 40px rgba(236, 72, 153, 0.24);
-      font-size: 25px;
+      box-shadow: 0 12px 28px rgba(236, 72, 153, 0.22);
+      font-size: 21px;
+      flex-shrink: 0;
     }
 
-    .brand h1 {
-      font-size: 28px;
+    .app-title {
+      font-size: 1.35rem;
+      font-weight: 800;
       letter-spacing: -0.06em;
+      line-height: 1.15;
     }
 
-    .brand p { color: var(--muted); font-size: 13px; margin-top: 3px; }
-
-    .stats {
+    .stat-chips {
       display: flex;
-      gap: 10px;
       flex-wrap: wrap;
+      gap: 6px;
       justify-content: flex-end;
     }
 
-    .stat {
-      min-width: 110px;
-      padding: 12px 14px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.09);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(20px);
+    .chip {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted2);
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
 
-    .stat span { color: var(--muted); font-size: 12px; font-weight: 800; }
-    .stat strong { display: block; font-size: 22px; margin-top: 4px; }
+    .chip b {
+      color: var(--text);
+      font-weight: 850;
+    }
 
-    .main-grid {
-      display: grid;
-      grid-template-columns: 280px 1fr 360px;
-      gap: 16px;
-      align-items: start;
+    .shell {
+      display: flex;
+      flex: 1;
+      gap: 12px;
+      align-items: stretch;
+      min-height: 0;
+    }
+
+    .side-nav {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      width: 200px;
+      flex-shrink: 0;
+      padding: 10px;
+      border-radius: 22px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid var(--border);
+      align-self: flex-start;
+      position: sticky;
+      top: 12px;
+    }
+
+    .side-nav-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--muted);
+      background: transparent;
+      font-family: inherit;
+    }
+
+    .side-nav-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .side-nav-btn.active {
+      color: #fff;
+      background: rgba(168, 85, 247, 0.28);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+
+    .shell-main {
+      flex: 1;
+      min-width: 0;
+      padding-bottom: calc(76px + env(safe-area-inset-bottom));
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+      animation: viewIn 0.22s ease;
+    }
+
+    .view.view-flex.active {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (min-width: 900px) {
+      .view.view-flex.active {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+      .view.view-flex.active > .calendar-panel {
+        flex: 0 0 300px;
+        max-width: 340px;
+      }
+      .view.view-flex.active > .timeline-panel {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    @keyframes viewIn {
+      from { opacity: 0.72; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .view-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tab-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 95;
+      display: flex;
+      justify-content: space-around;
+      align-items: stretch;
+      padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
+      background: rgba(10, 11, 24, 0.94);
+      backdrop-filter: blur(18px);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      gap: 2px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      max-width: 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      border: 0;
+      border-radius: 14px;
+      padding: 8px 4px;
+      background: transparent;
+      color: var(--muted2);
+      font-size: 10px;
+      font-weight: 850;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .tab-btn .tab-ico {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: rgba(168, 85, 247, 0.22);
+    }
+
+    @media (min-width: 900px) {
+      .shell-main { padding-bottom: 24px; }
+      .side-nav { display: flex; }
+      .tab-bar { display: none; }
+    }
+
+    .panel-flat { margin-top: 0; }
+
+    .reward-card.compact p {
+      font-size: 12px;
+      line-height: 1.35;
+      margin-top: 4px;
+    }
+
+    .settings-section {
+      margin-bottom: 20px;
+    }
+
+    .settings-section h3 {
+      font-size: 13px;
+      font-weight: 850;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .settings-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .panel {
@@ -253,13 +428,17 @@
     .primary-btn:hover, .ghost-btn:hover { transform: translateY(-2px); }
 
     .add-form {
-      display: none;
+      display: block;
       padding: 18px;
       border-bottom: 1px solid rgba(255,255,255,0.09);
       background: rgba(0,0,0,0.16);
     }
 
-    .add-form.open { display: block; animation: drop 0.25s ease both; }
+    .add-form.add-form--standalone {
+      border: 0;
+      padding: 0;
+      background: transparent;
+    }
 
     .form-grid {
       display: grid;
@@ -381,7 +560,7 @@
     .toast {
       position: fixed;
       left: 50%;
-      bottom: 24px;
+      bottom: calc(88px + env(safe-area-inset-bottom));
       transform: translateX(-50%) translateY(30px);
       opacity: 0;
       color: #111827;
@@ -391,45 +570,44 @@
       font-weight: 950;
       box-shadow: 0 22px 50px rgba(0,0,0,0.35);
       transition: 0.3s ease;
-      z-index: 20;
+      z-index: 110;
       text-align: center;
+      max-width: calc(100% - 24px);
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (min-width: 900px) {
+      .toast { bottom: 24px; }
+    }
 
     @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @keyframes drop { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
-    @media (max-width: 1180px) {
-      .main-grid { grid-template-columns: 260px 1fr; }
-      .right-panel { grid-column: 1 / -1; }
-      .right-panel .panel-inner { grid-template-columns: repeat(3, 1fr); }
-    }
-
     @media (max-width: 820px) {
-      .topbar { align-items: flex-start; flex-direction: column; }
-      .stats { justify-content: flex-start; }
-      .main-grid { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
       .add-form .primary-btn { white-space: normal; }
-      .right-panel .panel-inner { grid-template-columns: 1fr; }
       .agenda-header { flex-direction: column; align-items: stretch; }
       .event { grid-template-columns: 1fr; }
       .event-actions { justify-content: flex-start; }
     }
 
-    .subbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
-      align-items: center;
-      margin: -6px 0 20px;
+    .settings-body .sync-block {
+      margin: 0;
+      max-width: none;
+      flex-direction: column;
+      align-items: stretch;
     }
 
-    .subbar .ghost-btn { font-size: 13px; padding: 11px 14px; }
+    .settings-body .sync-email {
+      max-width: none;
+    }
 
-    @media (max-width: 820px) {
-      .subbar { justify-content: flex-start; margin-top: 4px; }
+    .add-form-page {
+      display: block;
+      padding: 18px;
+      background: rgba(0,0,0,0.12);
+      border-radius: 0;
+      border: 0;
     }
 
     .sync-block {
@@ -644,141 +822,174 @@
 </head>
 <body>
   <main class="app">
-    <header class="topbar">
-      <div class="brand">
+    <header class="app-top">
+      <div class="app-brand">
         <div class="logo">⚡</div>
         <div>
-          <h1>Questenda</h1>
-          <p>A real agenda with quests, useful rewards and progress.</p>
+          <div class="app-title">Questenda</div>
         </div>
       </div>
-
-      <div class="stats">
-        <div class="stat"><span>Level</span><strong id="level">1</strong></div>
-        <div class="stat"><span>Focus Coins</span><strong id="coins">30</strong></div>
-        <div class="stat"><span>Streak</span><strong id="streak">2d</strong></div>
-        <div class="stat"><span>Today</span><strong id="todayScore">0%</strong></div>
+      <div class="stat-chips" aria-label="Progress">
+        <span class="chip">Lv <b id="level">1</b></span>
+        <span class="chip"><b id="coins">30</b> coins</span>
+        <span class="chip"><b id="streak">2d</b> streak</span>
+        <span class="chip">Today <b id="todayScore">0%</b></span>
       </div>
     </header>
 
-    <div class="subbar">
-      <button type="button" class="ghost-btn" onclick="exportBackup()">Export backup</button>
-      <button type="button" class="ghost-btn" onclick="document.getElementById('importFile').click()">Import backup</button>
-      <input type="file" id="importFile" accept=".json,application/json" hidden />
-      <div class="sync-block" id="syncBlock" hidden>
-        <span class="sync-status" id="syncStatus"></span>
-        <div class="sync-login-row" id="syncLoginRow">
-          <input type="email" id="syncEmail" class="sync-email" placeholder="your@email.com (sync)" autocomplete="email" />
-          <input type="password" id="syncPassword" class="sync-email" placeholder="Password (if set on phone)" autocomplete="current-password" />
-        </div>
-        <div class="sync-btn-row" id="syncBtnRow">
-          <button type="button" class="ghost-btn" id="syncMagicBtn">Email magic link</button>
-          <button type="button" class="ghost-btn" id="syncPwdSignInBtn">Sign in with password</button>
-          <button type="button" class="ghost-btn" id="syncSignOutBtn" hidden>Sign out</button>
-        </div>
-        <div class="sync-set-pwd" id="syncSetPwdWrap" hidden>
-          <p class="sync-hint">Avoid magic-link limits: set a password once here, then on PC use the same email + password (no new email).</p>
-          <input type="password" id="syncNewPwd1" class="sync-email" placeholder="New password (min 6 chars)" autocomplete="new-password" />
-          <input type="password" id="syncNewPwd2" class="sync-email" placeholder="Repeat password" autocomplete="new-password" />
-          <button type="button" class="ghost-btn" id="syncSavePwdBtn">Save password</button>
-        </div>
-      </div>
-    </div>
+    <div class="shell">
+      <nav class="side-nav" aria-label="Sections">
+        <button type="button" class="side-nav-btn active" data-tab="agenda">📋 Agenda</button>
+        <button type="button" class="side-nav-btn" data-tab="add">➕ New</button>
+        <button type="button" class="side-nav-btn" data-tab="rewards">🎁 Rewards</button>
+        <button type="button" class="side-nav-btn" data-tab="settings">⚙️ Settings</button>
+      </nav>
 
-    <section class="main-grid">
-      <aside class="panel">
-        <div class="panel-inner">
-          <div class="section-title">
-            <h2>Calendar</h2>
-            <span class="pill" id="monthLabel">Month</span>
-          </div>
-          <div class="mini-calendar" id="calendar"></div>
-
-          <div class="quick-nav">
-            <button class="nav-btn active" onclick="jumpToDate(new Date())">📌 Today</button>
-            <button class="nav-btn" onclick="jumpDays(1)">➡️ Tomorrow</button>
-            <button class="nav-btn" onclick="showAllUpcoming()">📅 Upcoming</button>
-          </div>
-        </div>
-      </aside>
-
-      <section class="panel">
-        <div class="agenda-header">
-          <div class="date-title">
-            <h2 id="selectedDateTitle">Today</h2>
-            <p id="selectedDateSub">Plan your day by time, category and priority.</p>
-          </div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="ghost-btn" onclick="jumpDays(-1)">← Previous</button>
-            <button class="ghost-btn" onclick="jumpDays(1)">Next →</button>
-            <button class="primary-btn" onclick="toggleForm()">+ Plan something</button>
-          </div>
-        </div>
-
-        <div class="add-form" id="addForm">
-          <div class="form-grid">
-            <input id="titleInput" placeholder="What do you need to do?" />
-            <input id="dateInput" type="date" />
-            <input id="timeInput" type="time" />
-            <select id="categoryInput">
-              <option>School</option>
-              <option>Coding</option>
-              <option>Work</option>
-              <option>Personal</option>
-              <option>Health</option>
-            </select>
-          </div>
-          <div class="form-grid form-grid-secondary">
-            <input id="notesInput" placeholder="Small note, like: bring laptop or finish chapter 2" />
-            <select id="priorityInput">
-              <option value="Low">Low priority</option>
-              <option value="Medium" selected>Medium priority</option>
-              <option value="High">High priority</option>
-            </select>
-            <select id="energyInput">
-              <option value="Small">Small task</option>
-              <option value="Normal" selected>Normal task</option>
-              <option value="Big">Big task</option>
-            </select>
-            <button class="primary-btn" onclick="addEvent()">Save Plan</button>
-          </div>
-        </div>
-
-        <div class="timeline" id="timeline"></div>
-      </section>
-
-      <aside class="panel right-panel">
-        <div class="panel-inner">
-          <div class="reward-card">
-            <div class="reward-head">
-              <strong>Daily Reward</strong>
-              <span class="pill">Useful</span>
+      <div class="shell-main">
+        <section class="view view-flex active" data-tab="agenda">
+          <aside class="panel calendar-panel">
+            <div class="panel-inner">
+              <div class="section-title">
+                <h2>Calendar</h2>
+                <span class="pill" id="monthLabel">Month</span>
+              </div>
+              <div class="mini-calendar" id="calendar"></div>
+              <div class="quick-nav">
+                <button type="button" class="nav-btn active" onclick="jumpToDate(new Date())">📌 Today</button>
+                <button type="button" class="nav-btn" onclick="jumpDays(1)">➡️ Tomorrow</button>
+                <button type="button" class="nav-btn" onclick="showAllUpcoming()">📅 Upcoming</button>
+              </div>
             </div>
-            <p>Finish 70% of today's plan to unlock a real reward: guilt-free chill time, gaming time, or a snack break.</p>
+          </aside>
+
+          <section class="panel timeline-panel" style="padding: 0;">
+            <div class="agenda-header">
+              <div class="date-title">
+                <h2 id="selectedDateTitle">Today</h2>
+                <p id="selectedDateSub">Your day, sorted by time.</p>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="ghost-btn" onclick="jumpDays(-1)">← Prev</button>
+                <button type="button" class="ghost-btn" onclick="jumpDays(1)">Next →</button>
+                <button type="button" class="primary-btn" onclick="toggleForm()">Add task</button>
+              </div>
+            </div>
+            <div class="timeline" id="timeline"></div>
+          </section>
+        </section>
+
+        <section class="view" data-tab="add">
+          <div class="panel">
+            <div class="add-form-page">
+              <div class="section-title">
+                <h2>New task</h2>
+              </div>
+              <div class="add-form add-form--standalone" id="addForm">
+                <div class="form-grid">
+                  <input id="titleInput" placeholder="What do you need to do?" />
+                  <input id="dateInput" type="date" />
+                  <input id="timeInput" type="time" />
+                  <select id="categoryInput">
+                    <option>School</option>
+                    <option>Coding</option>
+                    <option>Work</option>
+                    <option>Personal</option>
+                    <option>Health</option>
+                  </select>
+                </div>
+                <div class="form-grid form-grid-secondary">
+                  <input id="notesInput" placeholder="Optional note" />
+                  <select id="priorityInput">
+                    <option value="Low">Low priority</option>
+                    <option value="Medium" selected>Medium priority</option>
+                    <option value="High">High priority</option>
+                  </select>
+                  <select id="energyInput">
+                    <option value="Small">Small task</option>
+                    <option value="Normal" selected>Normal task</option>
+                    <option value="Big">Big task</option>
+                  </select>
+                  <button type="button" class="primary-btn" onclick="addEvent()">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view view-stack" data-tab="rewards">
+          <div class="reward-card compact">
+            <div class="reward-head">
+              <strong>Daily</strong>
+              <span class="pill">Today</span>
+            </div>
+            <p>Hit 70% done today to claim bonus coins.</p>
             <div class="bar"><div class="bar-fill" id="dailyRewardBar"></div></div>
-            <button class="claim-btn" id="dailyClaim" onclick="claimDailyReward()">Claim daily reward</button>
+            <button type="button" class="claim-btn" id="dailyClaim" onclick="claimDailyReward()">Claim</button>
           </div>
 
-          <div class="reward-card">
+          <div class="reward-card compact">
             <div class="reward-head">
-              <strong>Focus Shop</strong>
+              <strong>Shop</strong>
               <span class="pill">Coins</span>
             </div>
-            <p>Spend coins on rewards you actually care about. The app should motivate you, not just give fake badges.</p>
+            <p>Spend coins on rewards you pick.</p>
             <div id="rewardShop"></div>
           </div>
 
-          <div class="reward-card">
+          <div class="reward-card compact">
             <div class="reward-head">
-              <strong>Weekly Goal</strong>
+              <strong>Weekly</strong>
               <span class="pill" id="weeklyText">0/10</span>
             </div>
-            <p>Complete 10 planned items this week to unlock a bigger reward, like a longer gaming session or movie night.</p>
+            <p>10 completed tasks this week fills the bar.</p>
             <div class="bar"><div class="bar-fill" id="weeklyBar"></div></div>
           </div>
-        </div>
-      </aside>
-    </section>
+        </section>
+
+        <section class="view" data-tab="settings">
+          <div class="panel">
+            <div class="panel-inner settings-body">
+              <div class="settings-section">
+                <h3>Backup</h3>
+                <div class="settings-actions">
+                  <button type="button" class="ghost-btn" onclick="exportBackup()">Export</button>
+                  <button type="button" class="ghost-btn" onclick="document.getElementById('importFile').click()">Import</button>
+                </div>
+                <input type="file" id="importFile" accept=".json,application/json" hidden />
+              </div>
+              <div class="settings-section">
+                <h3>Cloud &amp; account</h3>
+                <div class="sync-block" id="syncBlock" hidden>
+                  <span class="sync-status" id="syncStatus"></span>
+                  <div class="sync-login-row" id="syncLoginRow">
+                    <input type="email" id="syncEmail" class="sync-email" placeholder="your@email.com" autocomplete="email" />
+                    <input type="password" id="syncPassword" class="sync-email" placeholder="Password (if set)" autocomplete="current-password" />
+                  </div>
+                  <div class="sync-btn-row" id="syncBtnRow">
+                    <button type="button" class="ghost-btn" id="syncMagicBtn">Email magic link</button>
+                    <button type="button" class="ghost-btn" id="syncPwdSignInBtn">Sign in with password</button>
+                    <button type="button" class="ghost-btn" id="syncSignOutBtn" hidden>Sign out</button>
+                  </div>
+                  <div class="sync-set-pwd" id="syncSetPwdWrap" hidden>
+                    <p class="sync-hint">Set a password once — then sign in on another device without a new email.</p>
+                    <input type="password" id="syncNewPwd1" class="sync-email" placeholder="New password (min 6 chars)" autocomplete="new-password" />
+                    <input type="password" id="syncNewPwd2" class="sync-email" placeholder="Repeat password" autocomplete="new-password" />
+                    <button type="button" class="ghost-btn" id="syncSavePwdBtn">Save password</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <nav class="tab-bar" aria-label="Tabs">
+      <button type="button" class="tab-btn active" data-tab="agenda"><span class="tab-ico" aria-hidden="true">📋</span>Agenda</button>
+      <button type="button" class="tab-btn" data-tab="add"><span class="tab-ico" aria-hidden="true">➕</span>New</button>
+      <button type="button" class="tab-btn" data-tab="rewards"><span class="tab-ico" aria-hidden="true">🎁</span>Rewards</button>
+      <button type="button" class="tab-btn" data-tab="settings"><span class="tab-ico" aria-hidden="true">⚙️</span>Settings</button>
+    </nav>
   </main>
 
   <div class="celebration" id="celebration">
@@ -921,10 +1132,49 @@
       return xp;
     }
 
+    const APP_TAB_KEY = "questenda_app_tab";
+
+    function setAppTab(tab) {
+      const allowed = new Set(["agenda", "add", "rewards", "settings"]);
+      if (!allowed.has(tab)) tab = "agenda";
+      document.querySelectorAll(".view[data-tab]").forEach((v) => {
+        v.classList.toggle("active", v.getAttribute("data-tab") === tab);
+      });
+      document.querySelectorAll(".tab-btn[data-tab]").forEach((b) => {
+        b.classList.toggle("active", b.getAttribute("data-tab") === tab);
+      });
+      document.querySelectorAll(".side-nav-btn[data-tab]").forEach((b) => {
+        b.classList.toggle("active", b.getAttribute("data-tab") === tab);
+      });
+      try {
+        localStorage.setItem(APP_TAB_KEY, tab);
+      } catch (_) {}
+
+      if (tab === "add") {
+        const dateEl = document.getElementById("dateInput");
+        const timeEl = document.getElementById("timeInput");
+        if (dateEl) dateEl.value = dateKey(selectedDate);
+        if (timeEl && !timeEl.value) timeEl.value = "16:00";
+        const titleEl = document.getElementById("titleInput");
+        if (titleEl) requestAnimationFrame(() => titleEl.focus());
+      }
+    }
+
+    function restoreAppTab() {
+      let tab = "agenda";
+      try {
+        const s = localStorage.getItem(APP_TAB_KEY);
+        if (s && ["agenda", "add", "rewards", "settings"].includes(s)) tab = s;
+      } catch (_) {}
+      setAppTab(tab);
+    }
+
+    document.querySelectorAll(".tab-btn[data-tab], .side-nav-btn[data-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => setAppTab(btn.getAttribute("data-tab")));
+    });
+
     function toggleForm() {
-      document.getElementById("addForm").classList.toggle("open");
-      document.getElementById("dateInput").value = dateKey(selectedDate);
-      if (!document.getElementById("timeInput").value) document.getElementById("timeInput").value = "16:00";
+      setAppTab("add");
     }
 
     function addEvent() {
@@ -945,6 +1195,7 @@
       document.getElementById("notesInput").value = "";
       showToast("Plan saved to your agenda");
       render();
+      setAppTab("agenda");
     }
 
     function completeEvent(id) {
@@ -1046,18 +1297,18 @@
         shownEvents = events
           .filter(e => e.date >= dateKey(today))
           .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-        document.getElementById("selectedDateTitle").textContent = "Upcoming plans";
-        document.getElementById("selectedDateSub").textContent = "Everything coming up from today onward.";
+        document.getElementById("selectedDateTitle").textContent = "Upcoming";
+        document.getElementById("selectedDateSub").textContent = "From today, by date and time.";
       } else {
         shownEvents = events
           .filter(e => e.date === dateKey(selectedDate))
           .sort((a, b) => a.time.localeCompare(b.time));
         document.getElementById("selectedDateTitle").textContent = formatLong(selectedDate);
-        document.getElementById("selectedDateSub").textContent = "Plan your day by time, category and priority.";
+        document.getElementById("selectedDateSub").textContent = "Sorted by time — Add tab for new tasks.";
       }
 
       if (!shownEvents.length) {
-        timeline.innerHTML = `<div class="empty">No plans here yet.<br><br>Click <b>+ Plan something</b> to add school, coding, work or personal tasks to this date.</div>`;
+        timeline.innerHTML = `<div class="empty">Nothing scheduled.<br><br>Open <b>New</b> to add a task.</div>`;
         return;
       }
 
@@ -1115,7 +1366,7 @@
 
       const claim = document.getElementById("dailyClaim");
       claim.disabled = todayProgress < 70 || dailyRewardClaimed;
-      claim.textContent = dailyRewardClaimed ? "Daily reward claimed" : todayProgress >= 70 ? "Claim daily reward" : "Reach 70% today";
+      claim.textContent = dailyRewardClaimed ? "Claimed" : todayProgress >= 70 ? "Claim +50 coins" : `Today ${todayProgress}% · need 70%`;
     }
 
     function showToast(message) {
@@ -1597,6 +1848,7 @@
     }
 
     render();
+    restoreAppTab();
     qDbg("Boot summary", {
       debugPanel: questendaDebugOn(),
       path: location.pathname,
