@@ -1258,9 +1258,18 @@
 
         if (session?.user) {
           cloudSyncEnabled = true;
-          await pullFromCloud(session.user.id);
-          persistLocal();
-          render();
+          try {
+            await pullFromCloud(session.user.id);
+            persistLocal();
+            render();
+          } catch (pullErr) {
+            cloudSyncEnabled = false;
+            cloudLoadError =
+              (pullErr && pullErr.message) ||
+              "Could not read cloud save (see Supabase → Table Editor → questenda_save)";
+            qDbg("pullFromCloud failed — client kept so magic link still works", pullErr);
+            showToast("Data table missing? Run schema.sql in Supabase SQL Editor.");
+          }
         } else {
           qDbg("No active session — enter email and use magic link");
         }
@@ -1270,13 +1279,29 @@
           if (event === "SIGNED_OUT") {
             cloudSyncEnabled = false;
           }
+          if (event === "SIGNED_IN") {
+            const { data: { session: s2 } } = await supabaseClient.auth.getSession();
+            if (s2?.user) {
+              cloudSyncEnabled = true;
+              try {
+                await pullFromCloud(s2.user.id);
+                persistLocal();
+                render();
+              } catch (pullErr) {
+                cloudSyncEnabled = false;
+                cloudLoadError = (pullErr && pullErr.message) || String(pullErr);
+                qDbg("pullFromCloud after sign-in failed", pullErr);
+                showToast("Signed in — fix questenda_save table (run schema.sql)");
+              }
+            }
+          }
           await refreshSyncUI();
         });
 
         await refreshSyncUI();
         qDbg("initRemoteSync: finished OK");
       } catch (err) {
-        qDbg("initRemoteSync: FAILED", err);
+        qDbg("initRemoteSync: FAILED before client ready", err);
         console.warn(err);
         cloudLoadError = err && err.message ? err.message : "Cloud setup failed";
         showToast("Cloud unavailable — using this device only");
@@ -1368,9 +1393,13 @@
       if (!supabaseClient) {
         qDbg("Magic link blocked: supabaseClient is null", {
           cloudLoadError: cloudLoadError || "(none)",
-          hint: "See earlier [Questenda] logs — CDN blocked, bad keys, or init threw"
+          hint: "Reload page. If still broken: F12 → Console [Questenda] lines, or Supabase init failed before createClient."
         });
-        showToast("Cloud still loading — try again in a second");
+        showToast(
+          cloudLoadError
+            ? `Cloud: ${cloudLoadError.slice(0, 120)}`
+            : "Cloud still loading — wait a few seconds and retry, or hard-refresh (Ctrl+Shift+R)"
+        );
         return;
       }
       const email = document.getElementById("syncEmail").value.trim();
