@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#080914" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Questenda" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icon.svg" />
+  <title>Questenda - Real Gamified Agenda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080914;
+      --panel: rgba(255, 255, 255, 0.09);
+      --panel2: rgba(255, 255, 255, 0.13);
+      --border: rgba(255, 255, 255, 0.13);
+      --text: #ffffff;
+      --muted: #b9b7ca;
+      --muted2: #858199;
+      --purple: #a855f7;
+      --pink: #ec4899;
+      --blue: #60a5fa;
+      --green: #34d399;
+      --yellow: #facc15;
+      --red: #fb7185;
+      --shadow: 0 28px 90px rgba(0, 0, 0, 0.48);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-top: env(safe-area-inset-top);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      padding-bottom: env(safe-area-inset-bottom);
+      font-family: Inter, system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 8%, rgba(168, 85, 247, 0.35), transparent 30%),
+        radial-gradient(circle at 92% 12%, rgba(236, 72, 153, 0.22), transparent 28%),
+        radial-gradient(circle at 55% 100%, rgba(96, 165, 250, 0.16), transparent 34%),
+        var(--bg);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.08;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .app {
+      width: min(1420px, calc(100% - 30px));
+      margin: 0 auto;
+      padding: 22px 0 50px;
+      position: relative;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo {
+      width: 54px;
+      height: 54px;
+      border-radius: 19px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      box-shadow: 0 18px 40px rgba(236, 72, 153, 0.24);
+      font-size: 25px;
+    }
+
+    .brand h1 {
+      font-size: 28px;
+      letter-spacing: -0.06em;
+    }
+
+    .brand p { color: var(--muted); font-size: 13px; margin-top: 3px; }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .stat {
+      min-width: 110px;
+      padding: 12px 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+    }
+
+    .stat span { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .stat strong { display: block; font-size: 22px; margin-top: 4px; }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr 360px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.065));
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(26px);
+      overflow: hidden;
+    }
+
+    .panel-inner { padding: 18px; }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2 {
+      font-size: 18px;
+      letter-spacing: -0.04em;
+    }
+
+    .pill {
+      border: 1px solid rgba(168,85,247,0.26);
+      background: rgba(168,85,247,0.16);
+      color: #eadcff;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .mini-calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 7px;
+      margin-top: 14px;
+    }
+
+    .day-name {
+      color: var(--muted2);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 900;
+      padding-bottom: 4px;
+    }
+
+    .calendar-day {
+      min-height: 38px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.22);
+      border-radius: 14px;
+      color: white;
+      cursor: pointer;
+      font-weight: 850;
+      position: relative;
+      transition: 0.2s ease;
+    }
+
+    .calendar-day:hover { transform: translateY(-2px); background: rgba(255,255,255,0.11); }
+    .calendar-day.selected { border-color: rgba(236,72,153,0.75); box-shadow: 0 0 0 4px rgba(236,72,153,0.12); }
+    .calendar-day.has-events::after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--green);
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .quick-nav {
+      display: grid;
+      gap: 9px;
+      margin-top: 18px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.23);
+      color: white;
+      border-radius: 18px;
+      padding: 13px 14px;
+      text-align: left;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .nav-btn:hover, .nav-btn.active { background: rgba(168,85,247,0.2); border-color: rgba(168,85,247,0.35); }
+
+    .agenda-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.09);
+    }
+
+    .date-title h2 {
+      font-size: clamp(24px, 4vw, 38px);
+      letter-spacing: -0.07em;
+    }
+
+    .date-title p { color: var(--muted); margin-top: 4px; }
+
+    .primary-btn, .ghost-btn {
+      border: 0;
+      border-radius: 18px;
+      padding: 13px 16px;
+      color: white;
+      font-weight: 950;
+      cursor: pointer;
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .primary-btn { background: linear-gradient(135deg, var(--purple), var(--pink)); box-shadow: 0 16px 35px rgba(236,72,153,0.22); }
+    .ghost-btn { background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.12); }
+    .primary-btn:hover, .ghost-btn:hover { transform: translateY(-2px); }
+
+    .add-form {
+      display: none;
+      padding: 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.09);
+      background: rgba(0,0,0,0.16);
+    }
+
+    .add-form.open { display: block; animation: drop 0.25s ease both; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 145px 135px 145px;
+      gap: 10px;
+    }
+
+    input, select, textarea, button { font-family: inherit; }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.28);
+      color: white;
+      border-radius: 17px;
+      padding: 14px 15px;
+      outline: none;
+    }
+
+    textarea { resize: vertical; min-height: 76px; margin-top: 10px; }
+    input:focus, select:focus, textarea:focus { border-color: rgba(236,72,153,0.65); box-shadow: 0 0 0 4px rgba(236,72,153,0.12); }
+
+    .timeline { padding: 18px; display: grid; gap: 12px; }
+
+    .empty {
+      padding: 36px 18px;
+      text-align: center;
+      border: 1px dashed rgba(255,255,255,0.16);
+      border-radius: 24px;
+      background: rgba(0,0,0,0.16);
+      color: var(--muted);
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 74px 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px;
+      background: rgba(0,0,0,0.24);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      animation: pop 0.25s ease both;
+    }
+
+    .event.done { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.22); }
+    .event-time { color: #e9d5ff; font-weight: 950; font-size: 15px; }
+    .event h3 { font-size: 16px; letter-spacing: -0.025em; }
+    .event.done h3 { color: #a1a1aa; text-decoration: line-through; }
+    .event-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 7px; color: var(--muted); font-size: 12px; font-weight: 750; }
+    .tag { padding: 5px 8px; border-radius: 999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); }
+
+    .event-actions { display: flex; gap: 8px; align-items: center; }
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      cursor: pointer;
+      font-weight: 950;
+    }
+    .icon-btn.complete { background: rgba(52,211,153,0.16); }
+    .icon-btn.delete { background: rgba(251,113,133,0.12); }
+
+    .right-panel .panel-inner { display: grid; gap: 16px; }
+
+    .reward-card {
+      background: rgba(0,0,0,0.23);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 15px;
+    }
+
+    .reward-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .reward-head strong { font-size: 15px; }
+    .reward-card p { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .claim-btn {
+      margin-top: 12px;
+      width: 100%;
+      border: 0;
+      border-radius: 16px;
+      padding: 12px;
+      color: #0f1020;
+      background: white;
+      font-weight: 950;
+      cursor: pointer;
+    }
+
+    .claim-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .bar { height: 12px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; margin-top: 10px; }
+    .bar-fill { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, var(--purple), var(--pink)); transition: 0.35s ease; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(30px);
+      opacity: 0;
+      color: #111827;
+      background: white;
+      padding: 14px 18px;
+      border-radius: 18px;
+      font-weight: 950;
+      box-shadow: 0 22px 50px rgba(0,0,0,0.35);
+      transition: 0.3s ease;
+      z-index: 20;
+      text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes drop { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1180px) {
+      .main-grid { grid-template-columns: 260px 1fr; }
+      .right-panel { grid-column: 1 / -1; }
+      .right-panel .panel-inner { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 820px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .stats { justify-content: flex-start; }
+      .main-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .right-panel .panel-inner { grid-template-columns: 1fr; }
+      .agenda-header { flex-direction: column; align-items: stretch; }
+      .event { grid-template-columns: 1fr; }
+      .event-actions { justify-content: flex-start; }
+    }
+
+    .subbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+      margin: -6px 0 20px;
+    }
+
+    .subbar .ghost-btn { font-size: 13px; padding: 11px 14px; }
+
+    @media (max-width: 820px) {
+      .subbar { justify-content: flex-start; margin-top: 4px; }
+    }
+
+    .sync-block {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+      max-width: min(520px, 100%);
+    }
+
+    @media (max-width: 820px) {
+      .sync-block { margin-left: 0; width: 100%; }
+    }
+
+    .sync-email {
+      flex: 1 1 160px;
+      min-width: 0;
+      max-width: 260px;
+      padding: 11px 14px;
+      font-size: 14px;
+    }
+
+    .sync-status {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      width: 100%;
+      flex-basis: 100%;
+    }
+
+    .sync-block.signed-in .sync-status {
+      width: auto;
+      flex-basis: auto;
+    }
+  
+    .celebration {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transition: 0.25s ease;
+    }
+
+    .celebration.show {
+      opacity: 1;
+    }
+
+    .celebration-card {
+      position: relative;
+      width: min(430px, calc(100% - 28px));
+      padding: 28px;
+      text-align: center;
+      border-radius: 34px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.22), rgba(255,255,255,0.09));
+      border: 1px solid rgba(255,255,255,0.22);
+      backdrop-filter: blur(28px);
+      box-shadow: 0 35px 100px rgba(0,0,0,0.55), 0 0 80px rgba(236,72,153,0.28);
+      transform: scale(0.75) rotate(-3deg);
+      animation: rewardPop 1.15s cubic-bezier(.16,1.3,.3,1) both;
+      overflow: hidden;
+    }
+
+    .celebration-card::before {
+      content: "";
+      position: absolute;
+      inset: -50%;
+      background: conic-gradient(from 0deg, transparent, rgba(168,85,247,0.35), transparent, rgba(236,72,153,0.35), transparent);
+      animation: spinGlow 1.4s linear infinite;
+    }
+
+    .celebration-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .big-fire {
+      font-size: 72px;
+      filter: drop-shadow(0 0 22px rgba(251,146,60,0.75));
+      animation: fireBounce 0.75s ease-in-out infinite alternate;
+    }
+
+    .celebration h2 {
+      font-size: 34px;
+      letter-spacing: -0.06em;
+      margin-top: 8px;
+    }
+
+    .celebration p {
+      color: #e9d5ff;
+      margin-top: 8px;
+      font-weight: 850;
+    }
+
+    .streak-burst {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 60;
+      transform: translateY(-120px);
+      opacity: 0;
+      transition: 0.45s cubic-bezier(.16,1.3,.3,1);
+      background: linear-gradient(135deg, rgba(251,146,60,0.96), rgba(236,72,153,0.94));
+      padding: 16px 20px;
+      border-radius: 24px;
+      box-shadow: 0 24px 60px rgba(251,146,60,0.32);
+      font-weight: 950;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .streak-burst.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .confetti-piece {
+      position: fixed;
+      width: 10px;
+      height: 16px;
+      border-radius: 4px;
+      top: -20px;
+      z-index: 55;
+      animation: confettiFall 1.4s linear forwards;
+    }
+
+    @keyframes rewardPop {
+      0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+      45% { transform: scale(1.08) rotate(2deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    @keyframes spinGlow {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fireBounce {
+      from { transform: translateY(0) scale(1); }
+      to { transform: translateY(-8px) scale(1.08); }
+    }
+
+    @keyframes confettiFall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+</style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">⚡</div>
+        <div>
+          <h1>Questenda</h1>
+          <p>A real agenda with quests, useful rewards and progress.</p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span>Level</span><strong id="level">1</strong></div>
+        <div class="stat"><span>Focus Coins</span><strong id="coins">30</strong></div>
+        <div class="stat"><span>Streak</span><strong id="streak">2d</strong></div>
+        <div class="stat"><span>Today</span><strong id="todayScore">0%</strong></div>
+      </div>
+    </header>
+
+    <div class="subbar">
+      <button type="button" class="ghost-btn" onclick="exportBackup()">Export backup</button>
+      <button type="button" class="ghost-btn" onclick="document.getElementById('importFile').click()">Import backup</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden />
+      <div class="sync-block" id="syncBlock" hidden>
+        <span class="sync-status" id="syncStatus"></span>
+        <input type="email" id="syncEmail" class="sync-email" placeholder="your@email.com (sync)" autocomplete="email" />
+        <button type="button" class="ghost-btn" id="syncMagicBtn">Email magic link</button>
+        <button type="button" class="ghost-btn" id="syncSignOutBtn" hidden>Sign out</button>
+      </div>
+    </div>
+
+    <section class="main-grid">
+      <aside class="panel">
+        <div class="panel-inner">
+          <div class="section-title">
+            <h2>Calendar</h2>
+            <span class="pill" id="monthLabel">Month</span>
+          </div>
+          <div class="mini-calendar" id="calendar"></div>
+
+          <div class="quick-nav">
+            <button class="nav-btn active" onclick="jumpToDate(new Date())">📌 Today</button>
+            <button class="nav-btn" onclick="jumpDays(1)">➡️ Tomorrow</button>
+            <button class="nav-btn" onclick="showAllUpcoming()">📅 Upcoming</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel">
+        <div class="agenda-header">
+          <div class="date-title">
+            <h2 id="selectedDateTitle">Today</h2>
+            <p id="selectedDateSub">Plan your day by time, category and priority.</p>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="ghost-btn" onclick="jumpDays(-1)">← Previous</button>
+            <button class="ghost-btn" onclick="jumpDays(1)">Next →</button>
+            <button class="primary-btn" onclick="toggleForm()">+ Plan something</button>
+          </div>
+        </div>
+
+        <div class="add-form" id="addForm">
+          <div class="form-grid">
+            <input id="titleInput" placeholder="What do you need to do?" />
+            <input id="dateInput" type="date" />
+            <input id="timeInput" type="time" />
+            <select id="categoryInput">
+              <option>School</option>
+              <option>Coding</option>
+              <option>Work</option>
+              <option>Personal</option>
+              <option>Health</option>
+            </select>
+          </div>
+          <div class="form-grid" style="grid-template-columns: 1fr 145px 145px 145px; margin-top:10px;">
+            <input id="notesInput" placeholder="Small note, like: bring laptop or finish chapter 2" />
+            <select id="priorityInput">
+              <option value="Low">Low priority</option>
+              <option value="Medium" selected>Medium priority</option>
+              <option value="High">High priority</option>
+            </select>
+            <select id="energyInput">
+              <option value="Small">Small task</option>
+              <option value="Normal" selected>Normal task</option>
+              <option value="Big">Big task</option>
+            </select>
+            <button class="primary-btn" onclick="addEvent()">Save Plan</button>
+          </div>
+        </div>
+
+        <div class="timeline" id="timeline"></div>
+      </section>
+
+      <aside class="panel right-panel">
+        <div class="panel-inner">
+          <div class="reward-card">
+            <div class="reward-head">
+              <strong>Daily Reward</strong>
+              <span class="pill">Useful</span>
+            </div>
+            <p>Finish 70% of today's plan to unlock a real reward: guilt-free chill time, gaming time, or a snack break.</p>
+            <div class="bar"><div class="bar-fill" id="dailyRewardBar"></div></div>
+            <button class="claim-btn" id="dailyClaim" onclick="claimDailyReward()">Claim daily reward</button>
+          </div>
+
+          <div class="reward-card">
+            <div class="reward-head">
+              <strong>Focus Shop</strong>
+              <span class="pill">Coins</span>
+            </div>
+            <p>Spend coins on rewards you actually care about. The app should motivate you, not just give fake badges.</p>
+            <div id="rewardShop"></div>
+          </div>
+
+          <div class="reward-card">
+            <div class="reward-head">
+              <strong>Weekly Goal</strong>
+              <span class="pill" id="weeklyText">0/10</span>
+            </div>
+            <p>Complete 10 planned items this week to unlock a bigger reward, like a longer gaming session or movie night.</p>
+            <div class="bar"><div class="bar-fill" id="weeklyBar"></div></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div class="celebration" id="celebration">
+    <div class="celebration-card">
+      <div class="celebration-content">
+        <div class="big-fire">🔥</div>
+        <h2>Quest Complete!</h2>
+        <p id="celebrationText">XP gained</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="streak-burst" id="streakBurst">🔥 Streak increased!</div>
+  <div class="toast" id="toast"></div>
+
+  <script src="./supabase-config.js"></script>
+  <script>
+    const today = new Date();
+    let selectedDate = cleanDate(today);
+    let viewUpcoming = false;
+    let coins = 30;
+    let level = 1;
+    let streak = 2;
+    let dailyRewardClaimed = false;
+    let boughtRewards = [];
+
+    let supabaseClient = null;
+    let cloudSyncEnabled = false;
+    let cloudSaveTimer = null;
+
+    function getPayload() {
+      return { events, coins, level, streak, dailyRewardClaimed, boughtRewards };
+    }
+
+    function applyPayload(data) {
+      if (!data || typeof data !== "object") return;
+      if (Array.isArray(data.events)) events = data.events;
+      if (typeof data.coins === "number") coins = data.coins;
+      if (typeof data.level === "number") level = data.level;
+      if (typeof data.streak === "number") streak = data.streak;
+      if (typeof data.dailyRewardClaimed === "boolean") dailyRewardClaimed = data.dailyRewardClaimed;
+      if (Array.isArray(data.boughtRewards)) boughtRewards = data.boughtRewards;
+    }
+
+    let events = [
+      { id: 1, title: "Software development intake questions", date: dateKey(today), time: "16:00", category: "School", priority: "High", energy: "Normal", notes: "Finish the doorstroom dossier answers", done: false },
+      { id: 2, title: "Watch JavaScript basics", date: dateKey(today), time: "18:30", category: "Coding", priority: "Medium", energy: "Small", notes: "Variables, functions and DOM", done: false },
+      { id: 3, title: "Prepare school bag", date: dateKey(addDays(today, 1)), time: "20:00", category: "Personal", priority: "Low", energy: "Small", notes: "Laptop charger, notebook, ID", done: false },
+      { id: 4, title: "Build first HTML portfolio section", date: dateKey(addDays(today, 2)), time: "19:00", category: "Coding", priority: "Medium", energy: "Big", notes: "Hero section + about me", done: false }
+    ];
+
+    const savedData = localStorage.getItem("questenda_save_v1");
+    if (savedData) {
+      try {
+        applyPayload(JSON.parse(savedData));
+      } catch (error) {
+        console.warn("Could not load Questenda save file", error);
+      }
+    }
+
+    const rewards = [
+      { id: "game30", name: "30 min gaming", cost: 60, icon: "🎮" },
+      { id: "snack", name: "Snack break", cost: 45, icon: "🍫" },
+      { id: "movie", name: "Movie night token", cost: 160, icon: "🍿" }
+    ];
+
+    function cleanDate(date) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    function dateKey(date) {
+      const d = cleanDate(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function addDays(date, amount) {
+      const d = cleanDate(date);
+      d.setDate(d.getDate() + amount);
+      return d;
+    }
+
+    function formatLong(date) {
+      return date.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+    }
+
+    function xpForEvent(event) {
+      let xp = 20;
+      if (event.energy === "Normal") xp += 10;
+      if (event.energy === "Big") xp += 25;
+      if (event.priority === "High") xp += 15;
+      if (event.category === "Coding" || event.category === "School") xp += 5;
+      return xp;
+    }
+
+    function toggleForm() {
+      document.getElementById("addForm").classList.toggle("open");
+      document.getElementById("dateInput").value = dateKey(selectedDate);
+      if (!document.getElementById("timeInput").value) document.getElementById("timeInput").value = "16:00";
+    }
+
+    function addEvent() {
+      const title = document.getElementById("titleInput").value.trim();
+      const date = document.getElementById("dateInput").value || dateKey(selectedDate);
+      const time = document.getElementById("timeInput").value || "12:00";
+      const category = document.getElementById("categoryInput").value;
+      const priority = document.getElementById("priorityInput").value;
+      const energy = document.getElementById("energyInput").value;
+      const notes = document.getElementById("notesInput").value.trim();
+
+      if (!title) return showToast("Add a title first");
+
+      events.push({ id: Date.now(), title, date, time, category, priority, energy, notes, done: false });
+      selectedDate = cleanDate(new Date(date));
+      viewUpcoming = false;
+      document.getElementById("titleInput").value = "";
+      document.getElementById("notesInput").value = "";
+      showToast("Plan saved to your agenda");
+      render();
+    }
+
+    function completeEvent(id) {
+      const event = events.find(e => e.id === id);
+      if (!event || event.done) return;
+      event.done = true;
+      const xp = xpForEvent(event);
+      const earned = Math.ceil(xp / 2);
+      coins += earned;
+      const oldLevel = level;
+      const completedTotal = events.filter(e => e.done).length;
+      level = Math.floor(completedTotal / 5) + 1;
+
+      if (event.date === dateKey(today)) streak += 1;
+
+      showCelebration(`+${xp} XP • +${earned} coins`);
+      showStreakBurst();
+      createConfetti();
+
+      if (level > oldLevel) {
+        setTimeout(() => showToast(`Level up! You are now level ${level}`), 900);
+      }
+
+      render();
+    }
+
+    function deleteEvent(id) {
+      events = events.filter(e => e.id !== id);
+      showToast("Removed from agenda");
+      render();
+    }
+
+    function jumpToDate(date) {
+      selectedDate = cleanDate(date);
+      viewUpcoming = false;
+      render();
+    }
+
+    function jumpDays(amount) {
+      selectedDate = addDays(selectedDate, amount);
+      viewUpcoming = false;
+      render();
+    }
+
+    function showAllUpcoming() {
+      viewUpcoming = true;
+      render();
+    }
+
+    function claimDailyReward() {
+      const todayEvents = events.filter(e => e.date === dateKey(today));
+      const done = todayEvents.filter(e => e.done).length;
+      const progress = todayEvents.length ? Math.round((done / todayEvents.length) * 100) : 0;
+      if (progress < 70 || dailyRewardClaimed) return;
+      dailyRewardClaimed = true;
+      coins += 50;
+      showToast("Daily reward claimed: +50 focus coins");
+      render();
+    }
+
+    function buyReward(id) {
+      const reward = rewards.find(r => r.id === id);
+      if (!reward || boughtRewards.includes(id) || coins < reward.cost) return;
+      coins -= reward.cost;
+      boughtRewards.push(id);
+      showToast(`${reward.name} unlocked. Use it without feeling guilty.`);
+      render();
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById("calendar");
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const first = new Date(year, month, 1);
+      const last = new Date(year, month + 1, 0);
+      const startOffset = (first.getDay() + 6) % 7;
+      const dayNames = ["M", "T", "W", "T", "F", "S", "S"];
+
+      document.getElementById("monthLabel").textContent = selectedDate.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+
+      let html = dayNames.map(d => `<div class="day-name">${d}</div>`).join("");
+      for (let i = 0; i < startOffset; i++) html += `<div></div>`;
+
+      for (let day = 1; day <= last.getDate(); day++) {
+        const d = new Date(year, month, day);
+        const key = dateKey(d);
+        const hasEvents = events.some(e => e.date === key);
+        const selected = key === dateKey(selectedDate) && !viewUpcoming;
+        html += `<button class="calendar-day ${hasEvents ? "has-events" : ""} ${selected ? "selected" : ""}" onclick="jumpToDate(new Date(${year}, ${month}, ${day}))">${day}</button>`;
+      }
+      calendar.innerHTML = html;
+    }
+
+    function renderTimeline() {
+      const timeline = document.getElementById("timeline");
+      let shownEvents;
+
+      if (viewUpcoming) {
+        shownEvents = events
+          .filter(e => e.date >= dateKey(today))
+          .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+        document.getElementById("selectedDateTitle").textContent = "Upcoming plans";
+        document.getElementById("selectedDateSub").textContent = "Everything coming up from today onward.";
+      } else {
+        shownEvents = events
+          .filter(e => e.date === dateKey(selectedDate))
+          .sort((a, b) => a.time.localeCompare(b.time));
+        document.getElementById("selectedDateTitle").textContent = formatLong(selectedDate);
+        document.getElementById("selectedDateSub").textContent = "Plan your day by time, category and priority.";
+      }
+
+      if (!shownEvents.length) {
+        timeline.innerHTML = `<div class="empty">No plans here yet.<br><br>Click <b>+ Plan something</b> to add school, coding, work or personal tasks to this date.</div>`;
+        return;
+      }
+
+      timeline.innerHTML = shownEvents.map(e => `
+        <article class="event ${e.done ? "done" : ""}">
+          <div class="event-time">${viewUpcoming ? e.date.slice(5).replace("-", "/") + "<br>" : ""}${e.time}</div>
+          <div>
+            <h3>${escapeHtml(e.title)}</h3>
+            <div class="event-meta">
+              <span class="tag">${e.category}</span>
+              <span class="tag">${e.priority}</span>
+              <span class="tag">${e.energy}</span>
+              <span class="tag">+${xpForEvent(e)} XP</span>
+            </div>
+            ${e.notes ? `<p class="event-meta" style="display:block; margin-top:9px;">${escapeHtml(e.notes)}</p>` : ""}
+          </div>
+          <div class="event-actions">
+            <button class="icon-btn complete" onclick="completeEvent(${e.id})">✓</button>
+            <button class="icon-btn delete" onclick="deleteEvent(${e.id})">×</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderRewards() {
+      const shop = document.getElementById("rewardShop");
+      shop.innerHTML = rewards.map(r => {
+        const owned = boughtRewards.includes(r.id);
+        const canBuy = coins >= r.cost && !owned;
+        return `
+          <div class="reward-card" style="margin-top:10px; padding:12px; border-radius:18px;">
+            <div class="reward-head" style="margin-bottom:0;">
+              <div><strong>${r.icon} ${r.name}</strong><p>${owned ? "Unlocked" : r.cost + " coins"}</p></div>
+              <button class="ghost-btn" style="padding:10px 12px; border-radius:14px;" onclick="buyReward('${r.id}')" ${canBuy ? "" : "disabled"}>${owned ? "Owned" : "Buy"}</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderStats() {
+      const todayEvents = events.filter(e => e.date === dateKey(today));
+      const todayDone = todayEvents.filter(e => e.done).length;
+      const todayProgress = todayEvents.length ? Math.round((todayDone / todayEvents.length) * 100) : 0;
+      const weekDone = events.filter(e => e.done).length;
+      const weeklyProgress = Math.min(100, Math.round((weekDone / 10) * 100));
+
+      document.getElementById("level").textContent = level;
+      document.getElementById("coins").textContent = coins;
+      document.getElementById("streak").textContent = `${streak}d`;
+      document.getElementById("todayScore").textContent = `${todayProgress}%`;
+      document.getElementById("dailyRewardBar").style.width = `${todayProgress}%`;
+      document.getElementById("weeklyBar").style.width = `${weeklyProgress}%`;
+      document.getElementById("weeklyText").textContent = `${Math.min(weekDone, 10)}/10`;
+
+      const claim = document.getElementById("dailyClaim");
+      claim.disabled = todayProgress < 70 || dailyRewardClaimed;
+      claim.textContent = dailyRewardClaimed ? "Daily reward claimed" : todayProgress >= 70 ? "Claim daily reward" : "Reach 70% today";
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function persistLocal() {
+      localStorage.setItem("questenda_save_v1", JSON.stringify(getPayload()));
+    }
+
+    function saveData() {
+      persistLocal();
+      scheduleCloudSave();
+    }
+
+    function supabaseConfigured() {
+      const u = window.QUESTENDA_SUPABASE_URL;
+      const k = window.QUESTENDA_SUPABASE_ANON_KEY;
+      return typeof u === "string" && u.startsWith("http") && typeof k === "string" && k.length > 30;
+    }
+
+    function scheduleCloudSave() {
+      if (!supabaseClient || !cloudSyncEnabled) return;
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(() => {
+        pushToCloudNow().catch((e) => console.warn(e));
+      }, 700);
+    }
+
+    async function pushToCloudNow() {
+      if (!supabaseClient || !cloudSyncEnabled) return;
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return;
+      const payload = getPayload();
+      const { error } = await supabaseClient.from("questenda_save").upsert(
+        { user_id: user.id, data: payload, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+      if (error) console.warn(error);
+    }
+
+    async function pullFromCloud(userId) {
+      const { data: row, error } = await supabaseClient
+        .from("questenda_save")
+        .select("data")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      const remote = row?.data;
+      if (remote && typeof remote === "object" && Array.isArray(remote.events) && remote.events.length > 0) {
+        applyPayload(remote);
+      } else {
+        await pushToCloudNow();
+      }
+    }
+
+    async function refreshSyncUI() {
+      const block = document.getElementById("syncBlock");
+      const status = document.getElementById("syncStatus");
+      const email = document.getElementById("syncEmail");
+      const magicBtn = document.getElementById("syncMagicBtn");
+      const outBtn = document.getElementById("syncSignOutBtn");
+      if (!block || !status || !email || !magicBtn || !outBtn) return;
+
+      if (!supabaseConfigured()) {
+        block.hidden = true;
+        return;
+      }
+
+      block.hidden = false;
+
+      if (!supabaseClient) {
+        status.textContent = "Loading cloud…";
+        email.hidden = false;
+        magicBtn.hidden = false;
+        outBtn.hidden = true;
+        block.classList.remove("signed-in");
+        return;
+      }
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session?.user) {
+        status.textContent = "Cloud sync on (same email on both devices)";
+        email.hidden = true;
+        magicBtn.hidden = true;
+        outBtn.hidden = false;
+        block.classList.add("signed-in");
+      } else {
+        status.textContent = "Use the same email on phone and PC to share data";
+        email.hidden = false;
+        magicBtn.hidden = false;
+        outBtn.hidden = true;
+        block.classList.remove("signed-in");
+      }
+    }
+
+    async function initRemoteSync() {
+      if (!supabaseConfigured()) {
+        const block = document.getElementById("syncBlock");
+        if (block) block.hidden = true;
+        return;
+      }
+
+      document.getElementById("syncBlock").hidden = false;
+      document.getElementById("syncStatus").textContent = "Loading cloud…";
+
+      try {
+        const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+        supabaseClient = createClient(
+          window.QUESTENDA_SUPABASE_URL.trim(),
+          window.QUESTENDA_SUPABASE_ANON_KEY.trim(),
+          {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true,
+              storage: localStorage
+            }
+          }
+        );
+
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session?.user) {
+          cloudSyncEnabled = true;
+          await pullFromCloud(session.user.id);
+          persistLocal();
+          render();
+        }
+
+        supabaseClient.auth.onAuthStateChange(async (event) => {
+          if (event === "SIGNED_OUT") {
+            cloudSyncEnabled = false;
+          }
+          await refreshSyncUI();
+        });
+
+        await refreshSyncUI();
+      } catch (err) {
+        console.warn(err);
+        showToast("Cloud unavailable — using this device only");
+        supabaseClient = null;
+        cloudSyncEnabled = false;
+        await refreshSyncUI();
+      }
+    }
+
+    function exportBackup() {
+      const payload = {
+        questendaVersion: 1,
+        exportedAt: new Date().toISOString(),
+        ...getPayload()
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `questenda-backup-${dateKey(today)}.json`;
+      a.rel = "noopener";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Backup file downloaded");
+    }
+
+    function importBackup(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!data || typeof data !== "object") throw new Error("bad shape");
+          applyPayload(data);
+          showToast("Backup restored");
+          render();
+        } catch (err) {
+          console.warn(err);
+          showToast("Could not read that file");
+        }
+      };
+      reader.readAsText(file, "utf-8");
+    }
+
+    function showCelebration(text) {
+      const celebration = document.getElementById("celebration");
+      document.getElementById("celebrationText").textContent = text;
+      celebration.classList.add("show");
+      setTimeout(() => celebration.classList.remove("show"), 1250);
+    }
+
+    function showStreakBurst() {
+      const burst = document.getElementById("streakBurst");
+      burst.textContent = `🔥 ${streak} day streak! Keep it burning!`;
+      burst.classList.add("show");
+      setTimeout(() => burst.classList.remove("show"), 1700);
+    }
+
+    function createConfetti() {
+      const colors = ["#a855f7", "#ec4899", "#60a5fa", "#34d399", "#facc15", "#fb7185"];
+      for (let i = 0; i < 42; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti-piece";
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = Math.random() * 0.25 + "s";
+        piece.style.transform = `rotate(${Math.random() * 180}deg)`;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 1700);
+      }
+    }
+
+    function render() {
+      renderCalendar();
+      renderTimeline();
+      renderRewards();
+      renderStats();
+      document.getElementById("dateInput").value = dateKey(selectedDate);
+      saveData();
+    }
+
+    document.getElementById("importFile").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      importBackup(file);
+      e.target.value = "";
+    });
+
+    document.getElementById("syncMagicBtn").addEventListener("click", async () => {
+      if (!supabaseClient) {
+        showToast("Cloud still loading — try again in a second");
+        return;
+      }
+      const email = document.getElementById("syncEmail").value.trim();
+      if (!email) {
+        showToast("Enter your email first");
+        return;
+      }
+      const redirect = `${window.location.origin}${window.location.pathname}`;
+      const { error } = await supabaseClient.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: redirect }
+      });
+      if (error) {
+        showToast(error.message || "Could not send login email");
+        return;
+      }
+      showToast("Check your email for the magic link");
+    });
+
+    document.getElementById("syncSignOutBtn").addEventListener("click", async () => {
+      if (!supabaseClient) return;
+      await supabaseClient.auth.signOut();
+      render();
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+
+    render();
+    void initRemoteSync();
+  </script>
+</body>
+</html>

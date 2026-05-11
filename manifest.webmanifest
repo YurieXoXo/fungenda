@@ -1,0 +1,19 @@
+{
+  "name": "Questenda",
+  "short_name": "Questenda",
+  "description": "Gamified agenda with quests, rewards, and progress",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080914",
+  "theme_color": "#080914",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

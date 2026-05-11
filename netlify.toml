@@ -1,0 +1,15 @@
+[build]
+  publish = "."
+
+# Open the site at / and still serve your single-page app.
+[[redirects]]
+  from = "/"
+  to = "/fungenda.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
