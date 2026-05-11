@@ -726,7 +726,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="./supabase-config.js"></script>
+  <script src="/supabase-config.js?v=5"></script>
   <script>
     const today = new Date();
     let selectedDate = cleanDate(today);
@@ -1083,6 +1083,34 @@
       return getSupabaseConfigStatus().ok;
     }
 
+    async function diagnoseConfigScript() {
+      try {
+        const href = `${location.origin}/supabase-config.js?v=5`;
+        const res = await fetch(href, { cache: "no-store" });
+        const text = await res.text();
+        const hasUrl = text.includes("QUESTENDA_SUPABASE_URL");
+        const hasKey = text.includes("QUESTENDA_SUPABASE_ANON_KEY");
+        qDbg("diagnose: fetched supabase-config.js", {
+          href,
+          httpStatus: res.status,
+          bytes: text.length,
+          hasUrl,
+          hasKey,
+          preview: text.replace(/\s+/g, " ").slice(0, 180),
+          fix:
+            res.status === 404
+              ? "File not on server — add supabase-config.js to repo / Netlify publish folder and redeploy."
+              : !hasUrl || !hasKey
+                ? "File exists but assignments missing — edit supabase-config.js and redeploy."
+                : text.includes('""') || text.includes("= \"\"")
+                  ? "URL or key is still empty string in the file on Netlify — fill values, commit, push."
+                  : "If preview looks right, hard-refresh (Ctrl+Shift+R) or unregister service worker."
+        });
+      } catch (e) {
+        qDbg("diagnose: fetch supabase-config.js threw", e.message || e);
+      }
+    }
+
     function scheduleCloudSave() {
       if (!supabaseClient || !cloudSyncEnabled) return;
       clearTimeout(cloudSaveTimer);
@@ -1182,8 +1210,9 @@
       if (!supabaseConfigured()) {
         qDbg("initRemoteSync: stopped — invalid supabase-config.js", {
           ...getSupabaseConfigStatus(),
-          hint: "Need https://…supabase.co and legacy anon JWT (long string starting with eyJ). New sb_publishable key alone may fail the len>30 check or break Auth REST."
+          hint: "Need https://….supabase.co and legacy anon JWT (starts with eyJ). New sb_publishable key may need different setup."
         });
+        await diagnoseConfigScript();
         const block = document.getElementById("syncBlock");
         if (block) block.hidden = true;
         return;
