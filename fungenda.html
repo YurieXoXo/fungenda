@@ -695,6 +695,7 @@
   <div class="streak-burst" id="streakBurst">🔥 Streak increased!</div>
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="./supabase-config.js"></script>
   <script>
     const today = new Date();
@@ -709,6 +710,7 @@
     let supabaseClient = null;
     let cloudSyncEnabled = false;
     let cloudSaveTimer = null;
+    let cloudLoadError = "";
 
     function getPayload() {
       return { events, coins, level, streak, dailyRewardClaimed, boughtRewards };
@@ -1053,7 +1055,7 @@
       block.hidden = false;
 
       if (!supabaseClient) {
-        status.textContent = "Loading cloud…";
+        status.textContent = cloudLoadError || "Loading cloud…";
         email.hidden = false;
         magicBtn.hidden = false;
         outBtn.hidden = true;
@@ -1086,9 +1088,14 @@
 
       document.getElementById("syncBlock").hidden = false;
       document.getElementById("syncStatus").textContent = "Loading cloud…";
+      cloudLoadError = "";
 
       try {
-        const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+        const lib = typeof window !== "undefined" ? window.supabase : null;
+        const createClient = lib && lib.createClient;
+        if (typeof createClient !== "function") {
+          throw new Error("Supabase script did not load (check network / ad blocker)");
+        }
         supabaseClient = createClient(
           window.QUESTENDA_SUPABASE_URL.trim(),
           window.QUESTENDA_SUPABASE_ANON_KEY.trim(),
@@ -1120,6 +1127,7 @@
         await refreshSyncUI();
       } catch (err) {
         console.warn(err);
+        cloudLoadError = err && err.message ? err.message : "Cloud setup failed";
         showToast("Cloud unavailable — using this device only");
         supabaseClient = null;
         cloudSyncEnabled = false;
