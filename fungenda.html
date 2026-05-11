@@ -442,6 +442,32 @@
       width: auto;
       flex-basis: auto;
     }
+
+    .questenda-debug {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 32vh;
+      margin: 0;
+      padding: 10px 12px;
+      font-size: 11px;
+      line-height: 1.4;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      color: #e4e4e7;
+      background: rgba(15, 16, 32, 0.96);
+      border-top: 1px solid rgba(168, 85, 247, 0.35);
+      overflow: auto;
+      z-index: 200;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .questenda-debug-note {
+      color: #a1a1aa;
+      margin-bottom: 8px;
+      font-size: 10px;
+    }
   
     .celebration {
       position: fixed;
@@ -694,6 +720,10 @@
 
   <div class="streak-burst" id="streakBurst">🔥 Streak increased!</div>
   <div class="toast" id="toast"></div>
+  <div id="questendaDebugWrap" class="questenda-debug" hidden>
+    <div class="questenda-debug-note">Questenda debug log — add <code>?debug=1</code> to the URL or run <code>localStorage.setItem("questenda_debug","1")</code> + reload. Open DevTools (F12) → Console for full details.</div>
+    <pre id="questendaDebugPanel"></pre>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="./supabase-config.js"></script>
@@ -711,6 +741,45 @@
     let cloudSyncEnabled = false;
     let cloudSaveTimer = null;
     let cloudLoadError = "";
+
+    function questendaDebugOn() {
+      try {
+        if (localStorage.getItem("questenda_debug") === "1") return true;
+        return new URLSearchParams(window.location.search).get("debug") === "1";
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function qDbg(message, detail) {
+      const t = new Date().toISOString().slice(11, 23);
+      if (detail !== undefined) {
+        console.log("[Questenda]", t, message, detail);
+      } else {
+        console.log("[Questenda]", t, message);
+      }
+      if (!questendaDebugOn()) return;
+      const wrap = document.getElementById("questendaDebugWrap");
+      const panel = document.getElementById("questendaDebugPanel");
+      if (!wrap || !panel) return;
+      wrap.hidden = false;
+      let line = `[${t}] ${message}`;
+      if (detail !== undefined) {
+        if (detail instanceof Error) {
+          line += `\n  ${detail.message}\n  ${detail.stack || ""}`;
+        } else if (typeof detail === "object") {
+          try {
+            line += "\n  " + JSON.stringify(detail, null, 2);
+          } catch (e) {
+            line += "\n  " + String(detail);
+          }
+        } else {
+          line += `\n  ${detail}`;
+        }
+      }
+      panel.textContent += line + "\n\n";
+      panel.parentElement.scrollTop = panel.parentElement.scrollHeight;
+    }
 
     function getPayload() {
       return { events, coins, level, streak, dailyRewardClaimed, boughtRewards };
@@ -998,10 +1067,20 @@
       scheduleCloudSave();
     }
 
-    function supabaseConfigured() {
+    function getSupabaseConfigStatus() {
       const u = window.QUESTENDA_SUPABASE_URL;
       const k = window.QUESTENDA_SUPABASE_ANON_KEY;
-      return typeof u === "string" && u.startsWith("http") && typeof k === "string" && k.length > 30;
+      return {
+        urlOk: typeof u === "string" && u.startsWith("http"),
+        urlHost: typeof u === "string" ? u.replace(/^https?:\/\//, "").split("/")[0] : "(missing)",
+        keyLen: typeof k === "string" ? k.length : 0,
+        keyStartsEyJ: typeof k === "string" && k.startsWith("eyJ"),
+        ok: typeof u === "string" && u.startsWith("http") && typeof k === "string" && k.length > 30
+      };
+    }
+
+    function supabaseConfigured() {
+      return getSupabaseConfigStatus().ok;
     }
 
     function scheduleCloudSave() {
@@ -1021,17 +1100,36 @@
         { user_id: user.id, data: payload, updated_at: new Date().toISOString() },
         { onConflict: "user_id" }
       );
-      if (error) console.warn(error);
+      if (error) {
+        qDbg("pushToCloudNow: upsert failed", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: "Run supabase/schema.sql and check RLS / table questenda_save exists"
+        });
+        console.warn(error);
+      }
     }
 
     async function pullFromCloud(userId) {
+      qDbg("pullFromCloud: querying questenda_save", { userShort: userId.slice(0, 8) + "…" });
       const { data: row, error } = await supabaseClient
         .from("questenda_save")
         .select("data")
         .eq("user_id", userId)
         .maybeSingle();
-      if (error) throw error;
+      if (error) {
+        qDbg("pullFromCloud: failed", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: "Table missing? Run schema.sql. Or RLS policy blocked (must be logged in)"
+        });
+        throw error;
+      }
       const remote = row?.data;
+      const n = Array.isArray(remote?.events) ? remote.events.length : 0;
+      qDbg("pullFromCloud: success", { hasRow: !!row, eventCount: n, seeding: n === 0 });
       if (remote && typeof remote === "object" && Array.isArray(remote.events) && remote.events.length > 0) {
         applyPayload(remote);
       } else {
@@ -1080,7 +1178,12 @@
     }
 
     async function initRemoteSync() {
+      qDbg("initRemoteSync: start");
       if (!supabaseConfigured()) {
+        qDbg("initRemoteSync: stopped — invalid supabase-config.js", {
+          ...getSupabaseConfigStatus(),
+          hint: "Need https://…supabase.co and legacy anon JWT (long string starting with eyJ). New sb_publishable key alone may fail the len>30 check or break Auth REST."
+        });
         const block = document.getElementById("syncBlock");
         if (block) block.hidden = true;
         return;
@@ -1091,11 +1194,18 @@
       cloudLoadError = "";
 
       try {
+        qDbg("Supabase UMD on window", {
+          typeofSupabase: typeof window.supabase,
+          hasCreateClient: typeof (window.supabase && window.supabase.createClient)
+        });
         const lib = typeof window !== "undefined" ? window.supabase : null;
         const createClient = lib && lib.createClient;
         if (typeof createClient !== "function") {
-          throw new Error("Supabase script did not load (check network / ad blocker)");
+          throw new Error("Supabase script did not load (check network / ad blocker / blocked CDN)");
         }
+        qDbg("createClient: invoking", {
+          host: window.QUESTENDA_SUPABASE_URL.trim().replace(/^https?:\/\//, "").split("/")[0]
+        });
         supabaseClient = createClient(
           window.QUESTENDA_SUPABASE_URL.trim(),
           window.QUESTENDA_SUPABASE_ANON_KEY.trim(),
@@ -1108,16 +1218,26 @@
             }
           }
         );
+        qDbg("createClient: OK");
 
-        const { data: { session } } = await supabaseClient.auth.getSession();
+        const { data: { session }, error: sessErr } = await supabaseClient.auth.getSession();
+        qDbg("auth.getSession", {
+          error: sessErr ? sessErr.message : null,
+          hasUser: !!session?.user,
+          userIdPreview: session?.user?.id ? session.user.id.slice(0, 8) + "…" : null
+        });
+
         if (session?.user) {
           cloudSyncEnabled = true;
           await pullFromCloud(session.user.id);
           persistLocal();
           render();
+        } else {
+          qDbg("No active session — enter email and use magic link");
         }
 
         supabaseClient.auth.onAuthStateChange(async (event) => {
+          if (event !== "TOKEN_REFRESHED") qDbg("auth.onAuthStateChange", event);
           if (event === "SIGNED_OUT") {
             cloudSyncEnabled = false;
           }
@@ -1125,7 +1245,9 @@
         });
 
         await refreshSyncUI();
+        qDbg("initRemoteSync: finished OK");
       } catch (err) {
+        qDbg("initRemoteSync: FAILED", err);
         console.warn(err);
         cloudLoadError = err && err.message ? err.message : "Cloud setup failed";
         showToast("Cloud unavailable — using this device only");
@@ -1215,6 +1337,10 @@
 
     document.getElementById("syncMagicBtn").addEventListener("click", async () => {
       if (!supabaseClient) {
+        qDbg("Magic link blocked: supabaseClient is null", {
+          cloudLoadError: cloudLoadError || "(none)",
+          hint: "See earlier [Questenda] logs — CDN blocked, bad keys, or init threw"
+        });
         showToast("Cloud still loading — try again in a second");
         return;
       }
@@ -1224,19 +1350,23 @@
         return;
       }
       const redirect = `${window.location.origin}${window.location.pathname}`;
-      const { error } = await supabaseClient.auth.signInWithOtp({
+      qDbg("signInWithOtp: sending", { redirectTo: redirect, emailHasAt: email.includes("@") });
+      const { data, error } = await supabaseClient.auth.signInWithOtp({
         email,
         options: { emailRedirectTo: redirect }
       });
       if (error) {
+        qDbg("signInWithOtp: error", { message: error.message, status: error.status, name: error.name });
         showToast(error.message || "Could not send login email");
         return;
       }
+      qDbg("signInWithOtp: email sent OK", data || {});
       showToast("Check your email for the magic link");
     });
 
     document.getElementById("syncSignOutBtn").addEventListener("click", async () => {
       if (!supabaseClient) return;
+      qDbg("auth.signOut");
       await supabaseClient.auth.signOut();
       render();
     });
@@ -1248,6 +1378,12 @@
     }
 
     render();
+    qDbg("Boot summary", {
+      debugPanel: questendaDebugOn(),
+      path: location.pathname,
+      supabaseUmd: typeof window.supabase,
+      config: getSupabaseConfigStatus()
+    });
     void initRemoteSync();
   </script>
 </body>
