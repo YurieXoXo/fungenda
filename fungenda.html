@@ -267,6 +267,28 @@
       gap: 10px;
     }
 
+    .form-grid-secondary {
+      margin-top: 10px;
+      grid-template-columns: 1fr;
+    }
+
+    .form-grid-secondary .primary-btn {
+      width: 100%;
+      justify-self: stretch;
+      padding: 15px 16px;
+    }
+
+    @media (min-width: 821px) {
+      .form-grid-secondary {
+        grid-template-columns: minmax(0, 1.4fr) 145px 145px auto;
+        align-items: start;
+      }
+      .form-grid-secondary .primary-btn {
+        width: auto;
+        min-width: 132px;
+      }
+    }
+
     input, select, textarea, button { font-family: inherit; }
 
     input, select, textarea {
@@ -388,6 +410,7 @@
       .stats { justify-content: flex-start; }
       .main-grid { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
+      .add-form .primary-btn { white-space: normal; }
       .right-panel .panel-inner { grid-template-columns: 1fr; }
       .agenda-header { flex-direction: column; align-items: stretch; }
       .event { grid-template-columns: 1fr; }
@@ -655,7 +678,7 @@
               <option>Health</option>
             </select>
           </div>
-          <div class="form-grid" style="grid-template-columns: 1fr 145px 145px 145px; margin-top:10px;">
+          <div class="form-grid form-grid-secondary">
             <input id="notesInput" placeholder="Small note, like: bring laptop or finish chapter 2" />
             <select id="priorityInput">
               <option value="Low">Low priority</option>
@@ -1157,11 +1180,38 @@
       }
       const remote = row?.data;
       const n = Array.isArray(remote?.events) ? remote.events.length : 0;
-      qDbg("pullFromCloud: success", { hasRow: !!row, eventCount: n, seeding: n === 0 });
-      if (remote && typeof remote === "object" && Array.isArray(remote.events) && remote.events.length > 0) {
+      qDbg("pullFromCloud: success", { hasRow: !!row, eventCount: n });
+      if (!row) {
+        qDbg("pullFromCloud: no row yet, uploading local data");
+        await pushToCloudNow();
+        return;
+      }
+      if (remote && typeof remote === "object" && Array.isArray(remote.events)) {
         applyPayload(remote);
       } else {
-        await pushToCloudNow();
+        qDbg("pullFromCloud: unexpected row.data shape", row);
+      }
+    }
+
+    let cloudPullDebounce = null;
+    function schedulePullFromServer() {
+      if (!supabaseClient) return;
+      clearTimeout(cloudPullDebounce);
+      cloudPullDebounce = setTimeout(() => void pullLatestFromServer(), 400);
+    }
+
+    async function pullLatestFromServer() {
+      if (!supabaseClient) return;
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session?.user) return;
+      cloudSyncEnabled = true;
+      try {
+        await pullFromCloud(session.user.id);
+        persistLocal();
+        render();
+      } catch (e) {
+        qDbg("pullLatestFromServer failed", e && e.message ? e.message : e);
+        cloudSyncEnabled = false;
       }
     }
 
@@ -1443,6 +1493,16 @@
       config: getSupabaseConfigStatus()
     });
     void initRemoteSync();
+
+    /* Re-fetch from Supabase when you return to the tab / app — no email needed per change */
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") schedulePullFromServer();
+    });
+    window.addEventListener("focus", schedulePullFromServer);
+    window.addEventListener("online", schedulePullFromServer);
+    setInterval(() => {
+      if (document.visibilityState === "visible") schedulePullFromServer();
+    }, 32000);
   </script>
 </body>
 </html>
